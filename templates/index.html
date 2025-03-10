@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waste Prediction</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        input, button {
+            padding: 10px;
+            margin: 10px;
+            font-size: 16px;
+        }
+        canvas {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Waste Prediction System</h1>
+
+    <label for="year">Enter Year:</label>
+    <input type="number" id="year" placeholder="Enter year">
+    <button onclick="fetchYearlyPrediction()">Predict Year</button>
+
+    <br>
+
+    <label for="month">Enter Month (1-12):</label>
+    <input type="number" id="month" min="1" max="12" placeholder="Enter month">
+    <button onclick="fetchMonthlyPrediction()">Predict Month</button>
+
+    <div id="charts"></div>
+
+    <script>
+        function fetchYearlyPrediction() {
+            let year = document.getElementById("year").value;
+            fetch(`/predict_year/${year}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("charts").innerHTML = "";
+                    Object.keys(data).forEach(category => {
+                        createChart(category, data[category].months, data[category].values, `Predicted ${category} for ${year}`);
+                    });
+                })
+                .catch(error => console.error("Error fetching data:", error));
+        }
+
+        function fetchMonthlyPrediction() {
+            let month = document.getElementById("month").value;
+            fetch(`/predict_month/${month}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("charts").innerHTML = "";
+                    Object.keys(data).forEach(category => {
+                        createChart(category, [month], [data[category]], `Predicted ${category} for Month ${month}`);
+                    });
+                })
+                .catch(error => console.error("Error fetching data:", error));
+        }
+
+        function createChart(title, labels, values, chartTitle) {
+            let canvas = document.createElement("canvas");
+            document.getElementById("charts").appendChild(canvas);
+            new Chart(canvas.getContext("2d"), {
+                type: "bar",
+                data: {
+                    labels: labels.map(m => `Month ${m}`),
+                    datasets: [{
+                        label: title,
+                        data: values,
+                        backgroundColor: "blue",
+                        borderColor: "black",
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: chartTitle
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+
+</body>
+</html>
